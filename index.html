@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>專業倒數計時器</title>
+    <!-- 引入 Inter 字體 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- 引入外部 CSS 檔案 -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- 標題 -->
+        <div class="text-center mb-8">
+            <h1>專業倒數計時器</h1>
+            <p>適合學習、工作、運動等各種場景使用</p>
+        </div>
+
+        <!-- 主要計時器區域 -->
+        <div class="main-card">
+            <div class="main-layout lg:flex-row">
+                <!-- 圓形進度指示器和時間顯示 -->
+                <div class="timer-section">
+                    <div class="progress-circle-wrapper">
+                        <svg class="progress-ring" viewBox="0 0 120 120">
+                            <circle cx="60" cy="60" r="54" fill="none" stroke="#e5e7eb" stroke-width="8"></circle>
+                            <circle id="progress-circle" cx="60" cy="60" r="54" fill="none" stroke="#4f46e5" stroke-width="8" stroke-linecap="round" stroke-dasharray="339.292" stroke-dashoffset="339.292"></circle>
+                        </svg>
+                        <div class="progress-circle-text-container">
+                            <div class="progress-circle-text-inner">
+                                <div id="timer-display" class="timer-display">25:00</div>
+                                <div id="current-status" class="timer-mode-status">待機中</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 控制按鈕 -->
+                    <div class="controls">
+                        <button id="start-pause-btn" class="btn">開始</button>
+                        <button id="reset-btn" class="btn">重置</button>
+                        <button id="settings-btn" class="btn">設定</button>
+                    </div>
+                </div>
+
+                <!-- 快速設定和狀態 -->
+                <div class="quick-settings-section">
+                    <h3>快速設定</h3>
+                    <div id="quick-presets-container" class="quick-presets-grid">
+                        <!-- 快速設定按鈕將由 JS 動態載入 -->
+                    </div>
+
+                    <div class="modal-inner-space-y">
+                        <div class="flex justify-between items-center">
+                            <span class="status-label">計時模式</span>
+                            <span id="current-mode-display" class="status-value text-indigo-600">倒數計時</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="status-label">音效</span>
+                            <span id="sound-status-display" class="status-value text-green-600">開啟</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="status-label">提醒設定</span>
+                            <span id="reminder-count-display" class="status-value text-purple-600">0個</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 計時歷史 -->
+        <div class="history-section">
+            <h3>計時歷史</h3>
+            <div id="history-list" class="modal-inner-space-y-sm max-h-40 overflow-y-auto">
+                <p class="text-gray-500 text-sm">暫無計時記錄</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 設定模態框 -->
+    <div id="settings-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="p-6">
+                <div class="modal-header">
+                    <h2>計時器設定</h2>
+                    <button id="close-settings" class="modal-close-btn">×</button>
+                </div>
+
+                <!-- 計時模式選擇 -->
+                <div class="modal-section">
+                    <label class="modal-label">計時模式</label>
+                    <div class="flex gap-3">
+                        <button id="countdown-mode-btn" class="mode-btn">倒數計時</button>
+                        <button id="countup-mode-btn" class="mode-btn">正數計時</button>
+                    </div>
+                </div>
+
+                <!-- 時間設定 -->
+                <div class="modal-section">
+                    <label class="modal-label">時間設定 (總時間)</label>
+                    <div class="flex gap-2">
+                        <div class="flex-1">
+                            <label class="input-label-xs">時</label>
+                            <input id="hours-input" type="number" min="0" max="99" value="0">
+                        </div>
+                        <div class="flex-1">
+                            <label class="input-label-xs">分</label>
+                            <input id="minutes-input" type="number" min="0" max="59" value="25">
+                        </div>
+                        <div class="flex-1">
+                            <label class="input-label-xs">秒</label>
+                            <input id="seconds-input" type="number" min="0" max="59" value="0">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 自訂快速設定 -->
+                <div class="modal-section">
+                    <label class="modal-label">自訂快速設定</label>
+                    <div id="custom-presets-list" class="modal-inner-space-y-sm mb-3">
+                        <!-- 自訂快速設定項目將動態添加 -->
+                    </div>
+                    <button id="add-custom-preset-btn">+ 添加自訂設定</button>
+                </div>
+
+                <!-- 提醒設定 -->
+                <div class="modal-section">
+                    <label class="modal-label">提醒設定</label>
+                    <div id="reminders-list" class="modal-inner-space-y-sm mb-3">
+                        <!-- 提醒項目將動態添加 -->
+                    </div>
+                    <button id="add-reminder-btn">+ 添加提醒</button>
+                </div>
+
+                <!-- 音效設定 -->
+                <div class="modal-section">
+                    <label class="modal-label">音效設定</label>
+                    <div class="modal-inner-space-y">
+                        <div class="flex justify-between items-center">
+                            <span class="status-label">啟用音效</span>
+                            <button id="sound-toggle" data-sound-enabled="true">
+                                <span></span>
+                            </button>
+                        </div>
+                        <div>
+                            <label class="input-label-xs">音量</label>
+                            <input id="volume-slider" type="range" min="0" max="100" value="70">
+                        </div>
+                        <div class="sound-select-group">
+                            <div>
+                                <label for="short-sound-select">短鈴聲 (提醒):</label>
+                                <select id="short-sound-select">
+                                    <option value="chime">短音 (預設)</option>
+                                    <option value="ding">叮噹聲</option>
+                                    <option value="notify">通知聲</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="long-sound-select">長鈴聲 (結束):</label>
+                                <select id="long-sound-select">
+                                    <option value="phone_ring">傳統電話鈴 (預設)</option>
+                                    <option value="gong">鑼聲</option>
+                                    <option value="bell">鐘聲</option>
+                                </select>
+                            </div>
+                        </div>
+                        <button id="test-sound-btn">🔊 測試音效</button>
+                    </div>
+                </div>
+
+                <!-- 確認按鈕 -->
+                <button id="apply-settings-btn" class="btn">套用設定</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通知區域 -->
+    <div id="notification-area"></div>
+
+    <!-- 顯示HTML語法按鈕 -->
+    <button id="show-code-btn" class="fab-btn" title="查看HTML語法">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path>
+        </svg>
+    </button>
+
+    <!-- 查看歷史記錄按鈕 -->
+    <button id="show-history-modal-btn" class="fab-btn" title="查看歷史記錄">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+    </button>
+
+    <!-- HTML語法顯示模態框 -->
+    <div id="code-modal" class="modal-overlay">
+        <div class="modal-content modal-content-lg">
+            <div class="p-6">
+                <div class="modal-header">
+                    <h2>HTML 語法</h2>
+                    <div class="code-modal-actions">
+                        <button id="copy-code-btn" class="btn">📋 複製代碼</button>
+                        <button id="close-code-modal" class="modal-close-btn">×</button>
+                    </div>
+                </div>
+                <div class="bg-gray-900 rounded-lg p-4 overflow-auto max-h-[70vh]">
+                    <pre id="code-content"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 引入外部 JavaScript 檔案 -->
+    <script src="script.js"></script>
+</body>
+</html>
